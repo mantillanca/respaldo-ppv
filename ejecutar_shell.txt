@@ -1,0 +1,31 @@
+
+## Copiar directorio de storage a VM 
+gsutil -m cp -r gs://sp-os-rca-bkt-01/prm_ppv/PPV /home/diegourra_everis/
+gsutil -m cp -r /home/malenantillanca_everis/PPV https://github.com/mantillanca/Latam.git
+
+##EJECUCION SHELL PRINCIPAL
+sh Run_Extrae_Reporteria.sh VENTA 2018 08 auditoria_ventas
+sh Run_Extrae_Reporteria.sh USOS 2018 08 auditoria_usos
+#####################
+
+
+##EJECUCION DE CARGA A ESQUEMA VW PARA CORRECCIONES DE SQL BQ
+
+  sh Run_Carga_BQ_detalle_venta.sh sp-os-rca-dev-01 sp-os-rca-dev-01 EXODSTB \
+  VW_EXODSTB DETALLE_VENTA 2018 07 REPADMIN PRM_EXODSTB                        
+
+  sh Run_Carga_BQ_detalle_usos.sh sp-os-rca-dev-01 sp-os-rca-dev-01 EXODSTB \
+  VW_EXODSTB DETALLE_USOS 2018 07 REPADMIN PRM_EXODSTB                      
+  
+#####################
+
+
+## Borrar directorio PPV
+sudo rm -rf PPV
+## Si no se encuentra apache-beam 
+## instalarlo:
+sudo pip install apache-beam[gcp]
+sudo pip install python-dateutil
+
+
+

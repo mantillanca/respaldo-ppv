@@ -1,0 +1,231 @@
+#!/bin/bash
+
+# #======================================================================================================#
+#  Nombre               : Run_Carga_BQ_detalle_venta.sh                                                  #
+#  Fecha creacion       : 26-10-2018                                                                     #
+#  Fecha modificacion   : 26-10-2018                                                                     #
+#  Descripcion          :                                                                                #
+#  Desarrollado         : everis                                                                         #
+#  Forma de Ejecutar    : sh                                                                             #
+#  Variables de entrada :PROYECTO_BQ_DEST PROYECTO_BQ_ORI ESQ_ODSBQ ESQ_BQ_DEST TABLA_DEST_BQ            #
+#                        FCH_ANIO FCH_MES ESQ_MAESTRO                                                    #
+#                                                                                                        #
+#                        sh Run_Carga_BQ_detalle_venta.sh sp-os-rca-dev-01 sp-os-rca-dev-01 EXODSTB \    #
+#                          VW_EXODSTB DETALLE_USOS 2018 07 REPADMIN PRM_EXODSTB                          #
+# #======================================================================================================#
+
+PROYECTO_BQ_DEST=$1
+PROYECTO_BQ_ORI=$2
+ESQ_ODSBQ=$3
+ESQ_BQ_DEST=$4
+TABLA_BQ_DEST=$5
+FCH_ANIO=$6
+FCH_MES=$7
+ESQ_MAESTRO=$8
+ESQ_PARAMETROS=$9
+
+echo $PROYECTO_BQ_DEST
+echo $PROYECTO_BQ_ORI
+echo $ESQ_ODSBQ
+echo $ESQ_BQ_DEST
+echo $TABLA_BQ_DEST
+echo $FCH_ANIO
+echo $FCH_MES
+echo $ESQ_MAESTRO
+echo $ESQ_PARAMETROS
+
+Query_1='
+with owner_cnt as (
+                  SELECT owner,SUBSTR(CONCAT("000", CAST(iata AS STRING)),-3) as iata
+                  FROM  `'${PROYECTO_BQ_ORI}'.'${ESQ_PARAMETROS}'.PRM_VENTA` ,unnest(owner_contable)
+                  ),
+     prm as       (SELECT vlr_cupon,cnta,estatus 
+                   FROM `'${PROYECTO_BQ_ORI}'.'${ESQ_PARAMETROS}'.PRM_VENTA`
+                   ),
+     grupo as     (SELECT grp_cnt
+                  FROM  `'${PROYECTO_BQ_ORI}'.'${ESQ_PARAMETROS}'.PRM_VENTA` )
+SELECT 
+SUBSTR(CONCAT("000", CAST(LNAR_NMR_IATA_EMISION AS STRING)),-3)AS CIA,
+PRSR_NMR_DOCUMENTO                                             AS FORMATO_SERIE, 
+PRSR_NMR_DOCUMENTO_PADRE                                       AS NUMERO_TKT_PADRE, 
+IATK_CRR_CONJUNCION                                            AS CORRELATIVO_COJ,
+DTPR_NMR_CUPON                                                 AS NUM_CUPON,
+EVNT_EST_CONTABLE                                              AS ESTADO_CONTABLE,
+DTVT_GRCN_CDG                                                  AS GRUPO_CONTABLE,
+FORMAT_DATE("%Y-%m-%d", DATE(DTVT_FCH_SAP))                    AS FECHA_CONTABLE_SAP,
+FORMAT_DATE("%Y-%m-%d", DATE(EVNT_FCH_CONTABLE))               AS FECHA_CONTABLE_REVERA,
+FORMAT_DATE("%Y-%m-%d", DATE(PRSR_FCH_EMISION))                AS FECHA_VENTA,
+BSAR_PSES_CDG_ISO                                              AS PAIS_EMISION ,
+CAST(CLHL_CDG_VTA AS STRING)                                   AS CLIENTE,
+CLHL_SCRS_VTA                                                  AS SUCURSAL,
+TPPR_CDG                                                       AS TIPO_PRODUCTO,
+EVNT_TRNS_CDG                                                  AS TRNC,
+IAVT_CDG_RFIC                                                  AS RFIC_RFISC,
+PRSR_FLIGHT_INDICATOR                                          AS FLIGHT_INDICATOR,
+PRSR_TPO_VTA                                                   AS TIPO_VTA_ESTANDAR,
+IAVT_FLG_VTA_SPECIAL                                           AS TIPO_VTA_ESPECIAL,
+LNAR_NMR_IATA_CARRIER                                          AS OPERADOR,
+EVNT_NMR_VUELO                                                 AS VUELO,
+FORMAT_DATE("%Y-%m-%d", DATE(EVNT_FCH_VUELO))                  AS FECHA_VUELO,
+CDDS_CDG_ORIGEN                                                AS CUIDAD_ORIGEN,
+CDDS_CDG_DESTINO                                               AS CUIDAD_DESTINO,
+ARPR_CDG_ORIGEN                                                AS AEROPUERTO_ORIGEN,
+ARPR_CDG_DESTINO                                               AS AEROPUERTO_DESTINO,
+MNDS_CDG_ISO_CHAR_EVENTO                                       AS MONEDA,
+REPLACE (CAST(EVNT_MNT_USD          AS STRING), ".", ",")      AS MNT_VTA_USD,
+REPLACE (CAST(EVNT_MNT_PAGO         AS STRING), ".", ",")      AS MNT_VTA_PAGO,
+REPLACE (CAST(DTVT_MNT_LOCAL        AS STRING), ".", ",")      AS MNT_VTA_FUNC,
+REPLACE (CAST(CDPR_MNT_USD_1        AS STRING), ".", ",")      AS MNT_COMISIONES_USD,
+REPLACE (CAST(CDPR_MNT_PAGO_2       AS STRING), ".", ",")      AS MNT_COMISIONES_PAGO,
+REPLACE (CAST(CMPC_MNT_LOCAL_3      AS STRING), ".", ",")      AS MNT_COMISIONES_FUNC,
+REPLACE (CAST(CDOR_MNT_USD_4        AS STRING), ".", ",")      AS MNT_DSC_USD,
+REPLACE (CAST(CDPR_MNT_PAGO_5       AS STRING), ".", ",")      AS MNT_DSC_PAGO,
+REPLACE (CAST(CMPC_MNT_LOCAL_6      AS STRING), ".", ",")      AS MNT_DSC_FUNC,
+REPLACE (CAST(TXCN_MNT_TAX_USD_7    AS STRING), ".", ",")      AS MNT_TAX_YQ_USD,
+REPLACE (CAST(TXCN_MNT_TAX_PAGO_8   AS STRING), ".", ",")      AS MNT_TAX_YQ_PAGO,
+REPLACE (CAST(TXCN_MNT_TAX_LOCAL_9  AS STRING), ".", ",")      AS MNT_TAX_YQ_FUNC,
+REPLACE (CAST(TXCN_MNT_TAX_USD_10   AS STRING), ".", ",")      AS MNT_TAX_JURO_USD,
+REPLACE (CAST(TXCN_MNT_TAX_PAGO_11  AS STRING), ".", ",")      AS MNT_TAX_JURO_PAGO,
+REPLACE (CAST(TXCN_MNT_TAX_LOCAL_12 AS STRING), ".", ",")      AS MNT_TAX_JURO_FUNC,
+REPLACE (CAST(TXCN_MNT_TAX_USD_13   AS STRING), ".", ",")      AS MNT_BOARDINGFEE_USD,
+REPLACE (CAST(TXCN_MNT_TAX_PAGO_14  AS STRING), ".", ",")      AS MNT_BOARDINGFEE_PAGO,
+REPLACE (CAST(TXCN_MNT_TAX_LOCAL_15 AS STRING), ".", ",")      AS MNT_BOARDINGFEE_FUNC
+FROM
+( 
+SELECT
+  DETALLE_VENTA.DTVT_CDG_CUPON,
+  TICKET.LNAR_NMR_IATA_EMISION,
+  PRSR_NMR_DOCUMENTO,
+  PRSR_NMR_DOCUMENTO_PADRE,
+  IATK_CRR_CONJUNCION,
+  DETALLE_VENTA.DTPR_NMR_CUPON,
+  EVNT_EST_CONTABLE,
+  DTVT_GRCN_CDG,
+  DTVT_FCH_SAP    ,
+  EVNT_FCH_CONTABLE,
+  TICKET.PRSR_FCH_EMISION,
+  BSAR_PSES_CDG_ISO,
+  CLHL_CDG_VTA,
+  CLHL_SCRS_VTA,
+  TPPR_CDG,
+  EVNT_TRNS_CDG,
+  IAVT_CDG_RFIC,
+  PRSR_FLIGHT_INDICATOR,
+  PRSR_TPO_VTA,
+  IAVT_FLG_VTA_SPECIAL,
+  LNAR_NMR_IATA_CARRIER,
+  EVNT_NMR_VUELO,
+  EVNT_FCH_VUELO,
+  DETALLE_VENTA.CDDS_CDG_ORIGEN,
+  DETALLE_VENTA.CDDS_CDG_DESTINO,
+  DETALLE_VENTA.ARPR_CDG_ORIGEN,
+  DETALLE_VENTA.ARPR_CDG_DESTINO,
+  MNDS_CDG_ISO_CHAR_EVENTO,
+  EVNT_MNT_USD,
+  EVNT_MNT_PAGO,
+  DTVT_MNT_LOCAL,
+  SUM(CASE WHEN TPCM_CDG IN ("STD", "OVER", "COPET") THEN CDPR_MNT_USD ELSE 0 END) CDPR_MNT_USD_1,
+  SUM(CASE WHEN TPCM_CDG IN ("STD", "OVER", "COPET") THEN CDPR_MNT_PAGO ELSE 0 END) CDPR_MNT_PAGO_2,
+  SUM(CASE WHEN TPCM_CDG IN ("STD", "OVER", "COPET") THEN CMPC_MNT_LOCAL ELSE 0 END) CMPC_MNT_LOCAL_3,
+  SUM(CASE WHEN TPCM_CDG IN ("DSC") THEN CDPR_MNT_USD ELSE 0 END) CDOR_MNT_USD_4,
+  SUM(CASE WHEN TPCM_CDG IN ("DSC") THEN CDPR_MNT_PAGO ELSE 0 END) CDPR_MNT_PAGO_5,
+  SUM(CASE WHEN TPCM_CDG IN ("DSC") THEN CMPC_MNT_LOCAL ELSE 0 END) CMPC_MNT_LOCAL_6,
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 4 THEN TXCN_MNT_TAX_USD ELSE 0 END) TXCN_MNT_TAX_USD_7, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 4 THEN TXCN_MNT_TAX_PAGO ELSE 0 END) TXCN_MNT_TAX_PAGO_8, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 4 THEN TXCN_MNT_TAX_LOCAL ELSE 0 END) TXCN_MNT_TAX_LOCAL_9, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 5 THEN TXCN_MNT_TAX_USD ELSE 0 END) TXCN_MNT_TAX_USD_10, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 5 THEN TXCN_MNT_TAX_PAGO ELSE 0 END) TXCN_MNT_TAX_PAGO_11, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 5 THEN TXCN_MNT_TAX_LOCAL ELSE 0 END) TXCN_MNT_TAX_LOCAL_12, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 1 THEN TXCN_MNT_TAX_USD ELSE 0 END) TXCN_MNT_TAX_USD_13, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 1 THEN TXCN_MNT_TAX_PAGO ELSE 0 END) TXCN_MNT_TAX_PAGO_14, 
+  SUM(CASE WHEN TAXES_ONE.TPTA_TPO_TASA = 1 THEN TXCN_MNT_TAX_LOCAL ELSE 0 END) TXCN_MNT_TAX_LOCAL_15
+FROM 
+    `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.DETALLE_VENTA` DETALLE_VENTA
+    INNER JOIN 
+      PRM
+     ON 
+        DETALLE_VENTA.EVNT_EST_CONTABLE=prm.estatus
+     AND
+        DETALLE_VENTA.TPEV_CDG = PRM.cnta
+     AND 
+        DETALLE_VENTA.DTPR_NMR_CUPON>prm.vlr_cupon
+LEFT JOIN 
+    `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.INFORMACION_ADICIONAL_VENTA` INFORMACION_ADICIONAL_VENTA 
+ON 
+      DETALLE_VENTA.DTVT_CDG_CUPON = INFORMACION_ADICIONAL_VENTA.DTVT_CDG_CUPON
+LEFT JOIN 
+      `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.TICKET`TICKET 
+ON 
+      DETALLE_VENTA.TCKT_CDG_TICKET = TICKET.TCKT_CDG_TICKET
+LEFT JOIN 
+      `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.INFORMACION_ADICIONAL_TICKET` INFORMACION_ADICIONAL_TICKET
+ON 
+        TICKET.TCKT_CDG_TICKET = INFORMACION_ADICIONAL_TICKET.TCKT_CDG_TICKET 
+LEFT JOIN 
+      `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.TRANSACCION` TRANSACCION
+ON  
+       TRANSACCION.TRNS_SEQ = TICKET.TRNS_SEQ
+LEFT JOIN
+       `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.COMISION_CUPON` COMISION_CUPON
+ON 
+        DETALLE_VENTA.DTVT_CDG_CUPON = CMPC_CDG_CUPON 
+        AND CMPC_CDG_CONCEPTO = "SAL" 
+LEFT JOIN
+      `'${PROYECTO_BQ_ORI}'.'${ESQ_ODSBQ}'.TAX_CUPON` TAX_CUPON 
+ON 
+       DETALLE_VENTA.DTVT_CDG_CUPON = TXCN_CDG_CUPON 
+       AND TXCN_CDG_CONCEPTO = "SAL" 
+LEFT JOIN
+      `'${PROYECTO_BQ_ORI}'.'${ESQ_MAESTRO}'.TAXES_ONE` TAXES_ONE 
+ON 
+      TAX_CUPON.TPTX_CDG = TAXES_ONE.TXES_CDG_TAX
+WHERE
+EXTRACT(YEAR from DATE(DTVT_FCH_SAP))=@FCH_SAP_ANIO AND
+EXTRACT(MONTH from DATE(DTVT_FCH_SAP))= @FCH_SAP_MES AND
+DETALLE_VENTA.DTVT_GRCN_CDG IN UNNEST((SELECT grp_cnt FROM GRUPO))
+AND DETALLE_VENTA.LNAR_NMR_IATA_EMISION IN (SELECT IATA FROM owner_cnt)
+GROUP BY 
+DETALLE_VENTA.DTVT_CDG_CUPON,
+TICKET.LNAR_NMR_IATA_EMISION,
+PRSR_NMR_DOCUMENTO,
+PRSR_NMR_DOCUMENTO_PADRE,
+IATK_CRR_CONJUNCION,
+DETALLE_VENTA.DTPR_NMR_CUPON,
+EVNT_EST_CONTABLE,
+DTVT_GRCN_CDG,
+DTVT_FCH_SAP    ,
+EVNT_FCH_CONTABLE,
+TICKET.PRSR_FCH_EMISION,
+BSAR_PSES_CDG_ISO,
+CLHL_CDG_VTA,
+CLHL_SCRS_VTA,
+TPPR_CDG,
+EVNT_TRNS_CDG,
+IAVT_CDG_RFIC,
+PRSR_FLIGHT_INDICATOR,
+PRSR_TPO_VTA,
+IAVT_FLG_VTA_SPECIAL,
+LNAR_NMR_IATA_CARRIER,
+EVNT_NMR_VUELO,
+EVNT_FCH_VUELO,
+DETALLE_VENTA.CDDS_CDG_ORIGEN,
+DETALLE_VENTA.CDDS_CDG_DESTINO,
+DETALLE_VENTA.ARPR_CDG_ORIGEN,
+DETALLE_VENTA.ARPR_CDG_DESTINO,
+MNDS_CDG_ISO_CHAR_EVENTO,
+EVNT_MNT_USD,
+EVNT_MNT_PAGO,
+DTVT_MNT_LOCAL
+)'
+
+echo $Query_1
+ bq query \
+ --use_legacy_sql=False  \
+ --destination_table $PROYECTO_BQ_DEST:$ESQ_BQ_DEST.$TABLA_BQ_DEST \
+ --replace \
+ --parameter=FCH_SAP_ANIO:INT64:$FCH_ANIO \
+ --parameter=FCH_SAP_MES:INT64:$FCH_MES \
+  $Query_1
+
+ _RETURN=$?
+ echo $_RETURN	
