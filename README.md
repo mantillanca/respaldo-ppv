@@ -1,11 +1,12 @@
 # respaldo-ppv
 ```
-git init 
+> git init 
 
+> git add PPV/
 
-git remote add origin https://github.com/mantillanca/LATAM-PPV.git
-git add PPV/
-git commit -m "Incorporacion de RNU y UNR 2"
-git push -u origin master
+> git commit -m "Venta, Usos, RNU, UNR"
+
+> git remote add PPV https://github.com/mantillanca/respaldo-ppv.git
+
+> git push -u PPV master
 ```
-pwd
