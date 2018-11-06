@@ -2,7 +2,9 @@
 ```
 > git init 
 
-> git add PPV/
+> git cd PPV/
+
+> git add .
 
 > git commit -m "Venta, Usos, RNU, UNR"
 
