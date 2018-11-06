@@ -1,17 +1,26 @@
+
 # respaldo-ppv
+
+## Para iniciar modificaciones de un repositorio existente 
+
 ```
-> git init 
+> git init
 
-> git cd PPV/
+> git clone https://github.com/mantillanca/respaldo-ppv.git
 
+> git remote add PPV https://github.com/mantillanca/respaldo-ppv.git
+
+``` 
+Una vez hecho los cambios, se deben ejecutar las siguientes sentencias:
+
+``` 
 > git add .
 
 > git commit -m "Venta, Usos, RNU, UNR"
 
-> git remote add PPV https://github.com/mantillanca/respaldo-ppv.git
-
 > git push -u PPV master
 ```
+
 ## Conflictos en el push
 
 Si existe algun conflicto en la carga de algunos de los archivos es preciso seguir los siguientes paso:
