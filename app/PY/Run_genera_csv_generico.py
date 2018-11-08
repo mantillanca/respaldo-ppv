@@ -1,3 +1,19 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Oct 2018
+
+@author: Malen Antillanca 
+@email: mantilla@everis.com - malen.antillanca@usach.cl
+
+@Description: 
+    - Python 2.7
+    - Libraries: 
+        - apache_beam
+        - datetime, os, hashlib, shutil,  subprocess, argparse
+        - datetime, dateutil
+"""
+
+
 import apache_beam as beam
 import datetime, os, hashlib, shutil,  subprocess, argparse
 import datetime as dt
